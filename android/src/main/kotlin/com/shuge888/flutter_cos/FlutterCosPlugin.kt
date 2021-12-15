@@ -1,7 +1,30 @@
 package com.shuge888.flutter_cos
 
+import android.app.Activity
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import com.tencent.cos.xml.CosXmlService
+import com.tencent.cos.xml.transfer.TransferConfig
+import androidx.annotation.NonNull
+import com.tencent.cos.xml.CosXmlServiceConfig
+import com.tencent.cos.xml.exception.CosXmlClientException
+import com.tencent.cos.xml.exception.CosXmlServiceException
+import com.tencent.cos.xml.listener.CosXmlProgressListener
+import com.tencent.cos.xml.listener.CosXmlResultListener
+import com.tencent.cos.xml.model.CosXmlRequest
+import com.tencent.cos.xml.model.CosXmlResult
+import com.tencent.cos.xml.transfer.COSXMLUploadTask
+import com.tencent.cos.xml.transfer.TransferManager
+
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.MethodChannel.Result
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+
 
 /** FlutterCosPlugin  */
 class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -13,65 +36,48 @@ class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   private var mContext: Context? = null
   private var mActivity: Activity? = null
 
-  // Registrar registrar;
-  // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-  // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-  // plugin registration via this function while apps migrate to use the new Android APIs
-  // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-  //
-  // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-  // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-  // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-  // in the same class.
-  //  public static void registerWith(Registrar registrar) {
-  //    final MethodChannel channel = new MethodChannel(registrar.messenger(), "fw_cos");
-  //    channel.setMethodCallHandler(new FlutterCosPlugin(registrar, channel));
-  //  }
-  // flutter 1.12之前的注册方法，没测试，估计用不了
-  //  public FlutterCosPlugin(PluginRegistry.Registrar registrar, MethodChannel channel) {
-  //    this.registrar = registrar;
-  //    this.channel = channel;
-  //  }
-  fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "fw_cos")
-    mContext = flutterPluginBinding.getApplicationContext()
-    channel.setMethodCallHandler(this)
+  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    channel = MethodChannel(flutterPluginBinding.getFlutterEngine().dartExecutor, "flutter_cos")
+    mContext = flutterPluginBinding.applicationContext
+    channel?.setMethodCallHandler(this)
   }
 
-  fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
     if (call.method.equals("getPlatformVersion")) {
       result.success("Android " + Build.VERSION.RELEASE)
     } else if (call.method.equals("getNative")) {
       result.success("getNative")
     } else if (call.method.equals("uploadFile")) {
       Log.d("onMethodCall", "uploadFile")
-      val secretId: String = call.argument("secretId") //secretId
-      val secretKey: String = call.argument("secretKey") //secretKey
+      val secretId: String = call.argument("secretId")!! //secretId
+      val secretKey: String = call.argument("secretKey")!! //secretKey
+      val sessionToken: String = call.argument("sessionToken")!! //secretKey
+      val expiredTime: String = call.argument("expiredTime")!! //secretKey
 
       // 此秘钥计算方法与项目中用到的不符合，所以不使用该方法生成秘钥
       // QCloudCredentialProvider myCredentialProvider =
       //        new ShortTimeCredentialProvider(secretId, secretKey, 300);
       val myCredentialProvider = LocalSessionCredentialProvider(
-        call.< String > argument < String ? > "secretId",
-        call.< String > argument < String ? > "secretKey",
-        call.< String > argument < String ? > "sessionToken",
-        call.argument("expiredTime").toString().toLong()
+        secretId,
+        secretKey,
+        sessionToken,
+        expiredTime.toLong(),
       )
-      val region: String = call.argument("region") // region
-      val bucket: String = call.argument("bucket") // bucket
-      val localPath: String = call.argument("localPath") // localPath
-      val cosPath: String = call.argument("cosPath") // cosPath
+      val region: String = call.argument("region")!! // region
+      val bucket: String = call.argument("bucket")!! // bucket
+      val localPath: String = call.argument("localPath")!! // localPath
+      val cosPath: String= call.argument("cosPath")!! // cosPath
 
       /// 初始化 COS Service
       // 创建 CosXmlServiceConfig 对象，根据需要修改默认的配置参数
-      val serviceConfig: CosXmlServiceConfig = Builder()
+      val serviceConfig: CosXmlServiceConfig = CosXmlServiceConfig.Builder()
         .setRegion(region)
         .isHttps(true) // 使用 HTTPS 请求, 默认为 HTTP 请求
         .builder()
       val cosXmlService = CosXmlService(mContext, serviceConfig, myCredentialProvider)
 
       // 初始化 TransferConfig，这里使用默认配置，如果需要定制，请参考 SDK 接口文档
-      val transferConfig: TransferConfig = Builder().build()
+      val transferConfig: TransferConfig = TransferConfig.Builder().build()
       //初始化 TransferManager
       val transferManager = TransferManager(cosXmlService, transferConfig)
       //上传文件
@@ -80,36 +86,36 @@ class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       data["localPath"] = localPath
       data["cosPath"] = cosPath
       Log.d("onMethodCall", "startUpload")
-      cosxmlUploadTask.setCosXmlProgressListener(object : CosXmlProgressListener() {
-        fun onProgress(complete: Long, target: Long) {
+      cosxmlUploadTask.setCosXmlProgressListener(object : CosXmlProgressListener {
+        override fun onProgress(complete: Long, target: Long) {
           Log.d("onProgress", "$complete : $target")
-          mActivity.runOnUiThread(Runnable {
+          mActivity?.runOnUiThread {
             val progress = HashMap<String, Any>()
             progress["cosPath"] = cosPath
             progress["localPath"] = localPath
             progress["progress"] = complete * 100.0 / target
-            channel.invokeMethod("onProgress", progress)
-          })
+            channel?.invokeMethod("onProgress", progress)
+          }
         }
       })
 
       //设置返回结果回调
-      cosxmlUploadTask.setCosXmlResultListener(object : CosXmlResultListener() {
-        fun onSuccess(request: CosXmlRequest?, httpResult: CosXmlResult) {
+      cosxmlUploadTask.setCosXmlResultListener(object : CosXmlResultListener {
+        override fun onSuccess(request: CosXmlRequest?, httpResult: CosXmlResult) {
           Log.d("onSuccess", httpResult.printResult())
-          mActivity.runOnUiThread(Runnable {
+          mActivity?.runOnUiThread{
             result.success(data)
-            channel.invokeMethod("onSuccess", cosPath)
-          })
+            channel?.invokeMethod("onSuccess", cosPath)
+          }
         }
 
-        fun onFail(request: CosXmlRequest?, exception: CosXmlClientException?, serviceException: CosXmlServiceException) {
+        override fun onFail(request: CosXmlRequest?, exception: CosXmlClientException?, serviceException: CosXmlServiceException) {
           Log.d("onFail", exception.toString() + serviceException.toString())
           data["message"] = exception.toString() + serviceException.toString()
-          mActivity.runOnUiThread(Runnable {
+          mActivity?.runOnUiThread {
             result.error("400", "error", exception.toString())
-            channel.invokeMethod("onFailed", data)
-          })
+            channel?.invokeMethod("onFailed", data)
+          }
           if (exception != null) {
             exception.printStackTrace()
           } else {
@@ -122,20 +128,23 @@ class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
   }
 
-  fun onDetachedFromEngine(@NonNull binding: FlutterPluginBinding?) {
-    channel.setMethodCallHandler(null)
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    channel?.setMethodCallHandler(null)
     channel = null
   }
 
   ///activity 生命周期
-  fun onAttachedToActivity(@NonNull binding: ActivityPluginBinding) {
-    mActivity = binding.getActivity()
+  override fun onAttachedToActivity(@NonNull binding: ActivityPluginBinding) {
+    mActivity = binding.activity
   }
 
-  fun onDetachedFromActivity() {
+  override fun onDetachedFromActivity() {
     mActivity = null
   }
 
-  fun onDetachedFromActivityForConfigChanges() {}
-  fun onReattachedToActivityForConfigChanges(@NonNull binding: ActivityPluginBinding?) {}
+  override fun onDetachedFromActivityForConfigChanges() {}
+
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {}
+
+
 }

@@ -5,10 +5,9 @@ buildscript {
     ext.kotlin_version = '1.6.0'
     repositories {
         google()
+        jcenter()
         mavenCentral()
-        maven {
-            url "https://dl.bintray.com/tencentqcloudterminal/maven"
-        }
+//        maven { url "https://dl.bintray.com/tencentqcloudterminal/maven" }
     }
 
     dependencies {
@@ -20,10 +19,9 @@ buildscript {
 rootProject.allprojects {
     repositories {
         google()
+        jcenter()
         mavenCentral()
-        maven {
-            url "https://dl.bintray.com/tencentqcloudterminal/maven"
-        }
+//        maven { url "https://dl.bintray.com/tencentqcloudterminal/maven" }
     }
 }
 
@@ -31,7 +29,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -53,5 +51,11 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.tencent.qcloud:cosxml:5.4.+'
+    implementation ('com.qcloud.cos:cos-ktx:5.6.5'){
+        exclude group: 'com.tencent.qcloud', module: 'beacon-android-release'
+    }
+//    implementation 'com.qcloud.cos:cos-android:5.7.+'
+//    implementation('com.tencent.qcloud:cosxml:5.6.2') {
+//        exclude group: 'com.tencent.qcloud', module: 'mtaUtils' //关闭 mta 上报功能
+//    }
 }
