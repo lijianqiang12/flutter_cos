@@ -1,7 +1,7 @@
 name: flutter_cos
 description: A tencent cos util
 version: 0.0.1
-homepage:
+homepage: https://github.com/lijianqiang12/flutter_cos
 
 environment:
   sdk: ">=2.15.0 <3.0.0"
