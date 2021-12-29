@@ -1,5 +1,6 @@
 #import "FlutterCosPlugin.h"
 #import "QCloudCOSXML/QCloudCOSXML.h"
+//#import "QCloudCOSV4/COSClient.h"
 #if __has_include(<flutter_cos/flutter_cos-Swift.h>)
 #import <flutter_cos/flutter_cos-Swift.h>
 #else

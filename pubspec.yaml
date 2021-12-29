@@ -1,6 +1,6 @@
 name: flutter_cos
 description: A tencent cos util
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/lijianqiang12/flutter_cos
 
 environment:

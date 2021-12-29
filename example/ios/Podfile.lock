@@ -1,0 +1,37 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_cos (0.0.1):
+    - Flutter
+    - QCloudCOSXML
+  - QCloudCore (6.0.2):
+    - QCloudCore/Default (= 6.0.2)
+  - QCloudCore/Default (6.0.2)
+  - QCloudCOSXML (6.0.2):
+    - QCloudCOSXML/Default (= 6.0.2)
+  - QCloudCOSXML/Default (6.0.2):
+    - QCloudCore (= 6.0.2)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_cos (from `.symlinks/plugins/flutter_cos/ios`)
+
+SPEC REPOS:
+  trunk:
+    - QCloudCore
+    - QCloudCOSXML
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_cos:
+    :path: ".symlinks/plugins/flutter_cos/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
+  flutter_cos: 18f215edced25c0fcf508712f450c7829e6c140c
+  QCloudCore: be2aedee9302463b96766b32c654fb61580470dd
+  QCloudCOSXML: 47f96d5e16ddaa17f961c49a3ef056d7279d6cc3
+
+PODFILE CHECKSUM: ce813e8640892ff85fd386500a2edff702bfa19e
+
+COCOAPODS: 1.11.2
