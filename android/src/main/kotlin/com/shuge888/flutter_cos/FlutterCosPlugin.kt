@@ -52,7 +52,7 @@ class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
       val secretId: String = call.argument("secretId")!! //secretId
       val secretKey: String = call.argument("secretKey")!! //secretKey
       val sessionToken: String = call.argument("sessionToken")!! //secretKey
-      val expiredTime: String = call.argument("expiredTime")!! //secretKey
+      val expiredTime: Long = call.argument("expiredTime")!! //secretKey
 
       // 此秘钥计算方法与项目中用到的不符合，所以不使用该方法生成秘钥
       // QCloudCredentialProvider myCredentialProvider =
@@ -61,7 +61,7 @@ class FlutterCosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         secretId,
         secretKey,
         sessionToken,
-        expiredTime.toLong(),
+        expiredTime,
       )
       val region: String = call.argument("region")!! // region
       val bucket: String = call.argument("bucket")!! // bucket

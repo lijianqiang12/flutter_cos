@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> {
           "tmpSecretId",
           "tmpSecretKey",
           "token",
-          "expiredTime",
+          0,
           "cosPath",
           "localPath");
       // platformVersion = await FwCos.getNative;

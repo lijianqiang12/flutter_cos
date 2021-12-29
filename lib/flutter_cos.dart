@@ -22,7 +22,7 @@ class FlutterCos {
       String secretId,
       String secretKey,
       String sessionToken,
-      expiredTime,
+      int expiredTime,
       String cosPath,
       String localPath) {
     return _channel.invokeMethod<dynamic>('uploadFile', {
